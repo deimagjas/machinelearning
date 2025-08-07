@@ -1,0 +1,22 @@
+{
+    "name": "Docusaurus DevContainer",
+    "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {},
+            "extensions": [
+                "docusaurus.docusaurus",
+                "esbenp.prettier-vscode"
+            ]
+        }
+    },
+    "forwardPorts": [3000],
+    "mounts": [
+        "source=${localWorkspaceFolder}/docs,target=/workspace/docs,type=bind"
+    ],
+    "postCreateCommand": "npx create-docusaurus@latest website classic --skip-install && npm install && npm install @docusaurus/plugin-content-docs && npm run build"
+}
