@@ -2,3 +2,6 @@ venv
 phi3-mlx
 adapters
 new_phi3-mlx
+models_cache/
+adapters_gemma3/
+new_gemma3/
