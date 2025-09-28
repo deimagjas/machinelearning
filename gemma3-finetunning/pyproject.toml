@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "ai engineer learning examples"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "pydantic-ai>=1.0.10",
+    "pydantic-ai-slim[huggingface]>=1.0.10",
+]
 
 [dependency-groups]
 dev = [

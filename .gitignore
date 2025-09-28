@@ -5,3 +5,5 @@ new_phi3-mlx
 models_cache/
 adapters_gemma3/
 new_gemma3/
+.DS_Store
+__pycache__/
