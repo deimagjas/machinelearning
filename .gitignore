@@ -7,3 +7,4 @@ adapters_gemma3/
 new_gemma3/
 .DS_Store
 __pycache__/
+gemma3-mlx
