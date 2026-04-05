@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from mlx_lm import convert, load
 
 
@@ -13,6 +15,9 @@ def convert_model(
     dtype: str = "float16",
     q_bits: int = 4,
 ) -> None:
+    if Path(mlx_path).exists():
+        print(f"[INFO] Skipping conversion, {mlx_path} already exists.")
+        return
     convert(
         model_name,
         quantize=quantize,

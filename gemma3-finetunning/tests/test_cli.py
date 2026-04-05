@@ -23,7 +23,7 @@ class TestLoginCommand:
         result = runner.invoke(app, ["login"])
 
         assert result.exit_code == 0
-        mock_cache.assert_called_once_with(cfg.model.mlx_path)
+        mock_cache.assert_called_once_with(cfg.model.cache_dir)
         mock_login.assert_called_once()
 
 
@@ -85,7 +85,7 @@ class TestTrainCommand:
             "dropout": cfg.lora.dropout,
         }
         mock_setup_adapter.assert_called_once_with(
-            cfg.lora.adapter_path, lora_config
+            cfg.lora.adapter_path, cfg.lora.num_layers, lora_config
         )
         mock_apply_lora.assert_called_once_with(
             mock_model, cfg.lora.num_layers, lora_config

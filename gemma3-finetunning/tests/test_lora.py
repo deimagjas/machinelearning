@@ -8,18 +8,16 @@ from pipeline.lora import apply_lora, setup_adapter
 class TestSetupAdapter:
     def test_creates_directory_and_config(self, tmp_path):
         adapter_path = str(tmp_path / "adapters")
-        lora_config = {
-            "num_layers": 4,
-            "lora_parameters": {"rank": 4, "scale": 20.0, "dropout": 0.0},
-        }
+        lora_params = {"rank": 4, "scale": 20.0, "dropout": 0.0}
 
-        result = setup_adapter(adapter_path, lora_config)
+        result = setup_adapter(adapter_path, num_layers=4, lora_params=lora_params)
 
         assert os.path.isdir(adapter_path)
-        assert os.path.isfile(result)
-        with open(result) as f:
+        assert result == os.path.join(adapter_path, "adapters.safetensors")
+        config_path = os.path.join(adapter_path, "adapter_config.json")
+        with open(config_path) as f:
             saved = json.load(f)
-        assert saved == lora_config
+        assert saved == {"num_layers": 4, "lora_parameters": lora_params}
 
     def test_overwrites_existing_config(self, tmp_path):
         adapter_path = str(tmp_path / "adapters")
@@ -28,11 +26,11 @@ class TestSetupAdapter:
         with open(config_path, "w") as f:
             json.dump({"old": True}, f)
 
-        new_config = {"num_layers": 8, "lora_parameters": {"rank": 8}}
-        setup_adapter(adapter_path, new_config)
+        setup_adapter(adapter_path, num_layers=8, lora_params={"rank": 8})
 
         with open(config_path) as f:
-            assert json.load(f) == new_config
+            saved = json.load(f)
+        assert saved == {"num_layers": 8, "lora_parameters": {"rank": 8}}
 
 
 class TestApplyLora:

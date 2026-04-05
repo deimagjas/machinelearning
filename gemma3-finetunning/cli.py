@@ -19,7 +19,7 @@ app = typer.Typer()
 def login() -> None:
     """Set up cache directory and log in to Hugging Face."""
     cfg = PipelineConfig()
-    setup_cache(cfg.model.mlx_path)
+    setup_cache(cfg.model.cache_dir)
     login_hf()
 
 
@@ -57,7 +57,7 @@ def train() -> None:
         "scale": cfg.lora.scale,
         "dropout": cfg.lora.dropout,
     }
-    adapter_file = setup_adapter(cfg.lora.adapter_path, lora_config)
+    adapter_file = setup_adapter(cfg.lora.adapter_path, cfg.lora.num_layers, lora_config)
     apply_lora(model, cfg.lora.num_layers, lora_config)
 
     train_set, val_set = load_training_data(

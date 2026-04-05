@@ -17,10 +17,11 @@ def test_load_model(mock_load):
 
 
 @patch("pipeline.model.convert")
-def test_convert_model(mock_convert):
+def test_convert_model(mock_convert, tmp_path):
+    mlx_path = str(tmp_path / "gemma3f-mlx")
     convert_model(
         model_name="google/gemma-3-270m-it",
-        mlx_path="./gemma3f-mlx",
+        mlx_path=mlx_path,
         quantize=True,
         dtype="float16",
         q_bits=4,
@@ -31,7 +32,7 @@ def test_convert_model(mock_convert):
         quantize=True,
         dtype="float16",
         q_bits=4,
-        mlx_path="./gemma3f-mlx",
+        mlx_path=mlx_path,
     )
 
 

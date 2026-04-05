@@ -10,6 +10,7 @@ class ModelConfig(BaseSettings):
     dtype: str = "float16"
     q_bits: PositiveInt = 4
     mlx_path: str = "./gemma3f-mlx"
+    cache_dir: str = "./models_cache"
 
 
 class LoraConfig(BaseSettings):
