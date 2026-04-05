@@ -17,4 +17,5 @@ dev = [
     "ipywidgets>=8.1.7",
     "mlx>=0.29.1",
     "mlx-lm>=0.28.0",
+    "pytest>=8.0",
 ]
