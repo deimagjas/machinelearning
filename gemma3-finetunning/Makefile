@@ -30,4 +30,4 @@ test-unit:
 all: setup login convert train fuse test
 
 clean:
-	rm -rf gemma3f-mlx/ adaptersf_gemma3/ new_functiongemma3/
+	rm -rf functiongemma-270m-it-mlx/ adapters-functiongemma-270m-it/ functiongemma-270m-it-new/
