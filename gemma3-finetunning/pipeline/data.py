@@ -11,6 +11,12 @@ def load_training_data(
     prompt_feature: str,
     completion_feature: str,
 ) -> tuple:
+    """Load a HuggingFace dataset for MLX LoRA fine-tuning.
+
+    Expects a dataset with prompt and completion columns, as described in the
+    MLX LoRA dataset format documentation:
+    https://github.com/ml-explore/mlx-lm/blob/main/mlx_lm/LORA.md#hugging-face-datasets
+    """
     args = types.SimpleNamespace(
         hf_dataset={
             "path": hf_dataset_path,

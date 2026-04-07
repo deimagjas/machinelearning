@@ -13,10 +13,9 @@ def run_inference(
         messages, tokenize=False, add_generation_prompt=True
     )
     sampler = make_sampler(temp=sampler_temp)
-    response = generate(
+    return generate(
         model,
         tokenizer,
         prompt=formatted_prompt,
         sampler=sampler,
     )
-    return response
