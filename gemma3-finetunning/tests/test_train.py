@@ -5,18 +5,31 @@ from pipeline.train import Metrics, run_training
 
 class TestMetrics:
     def test_on_train_loss_report(self):
+        # Given — a fresh Metrics instance with no recorded losses
         m = Metrics()
+
+        # When — two training loss reports are received at different iterations
         m.on_train_loss_report({"iteration": 10, "train_loss": 2.5})
         m.on_train_loss_report({"iteration": 20, "train_loss": 1.8})
+
+        # Then — both (iteration, loss) pairs are stored in order
         assert m.train_losses == [(10, 2.5), (20, 1.8)]
 
     def test_on_val_loss_report(self):
+        # Given — a fresh Metrics instance
         m = Metrics()
+
+        # When — a validation loss report is received at iteration 50
         m.on_val_loss_report({"iteration": 50, "val_loss": 0.7})
+
+        # Then — the validation loss is recorded as a (iteration, loss) tuple
         assert m.val_losses == [(50, 0.7)]
 
     def test_initial_state(self):
+        # Given/When — a newly created Metrics instance
         m = Metrics()
+
+        # Then — both loss lists start empty
         assert m.train_losses == []
         assert m.val_losses == []
 
@@ -29,6 +42,7 @@ class TestRunTraining:
     def test_calls_train_with_correct_args(
         self, mock_adam, mock_training_args, mock_cache, mock_train
     ):
+        # Given — mocked training dependencies: Adam optimizer, TrainingArgs, CacheDataset, and train function
         model = MagicMock()
         mock_cache.side_effect = lambda x: x
         mock_args_instance = MagicMock()
@@ -36,6 +50,7 @@ class TestRunTraining:
         mock_optimizer = MagicMock()
         mock_adam.return_value = mock_optimizer
 
+        # When — run_training is called with a model, datasets, training config, and learning rate
         metrics = run_training(
             model=model,
             train_set=["a", "b"],
@@ -45,6 +60,7 @@ class TestRunTraining:
             learning_rate=1e-5,
         )
 
+        # Then — both datasets are cached, TrainingArgs and Adam are configured correctly, train is invoked with the model and optimizer, and a Metrics object is returned
         assert mock_cache.call_count == 2
         mock_training_args.assert_called_once_with(
             adapter_file="adapters/adapters.safetensors",

@@ -20,13 +20,13 @@ class TestLoginCommand:
     @patch("cli.login_hf")
     @patch("cli.setup_cache")
     def test_calls_setup_cache_and_login(self, mock_cache, mock_login, cfg):
-        # Given
+        # Given — mocked HuggingFace login and cache setup functions, with the expected cache directory from config
         expected_cache_dir = cfg.model.cache_dir
 
-        # When
+        # When — the "login" CLI command is invoked
         result = runner.invoke(app, ["login"])
 
-        # Then
+        # Then — the command exits successfully, sets up the model cache directory, and triggers HF login
         assert result.exit_code == 0
         mock_cache.assert_called_once_with(expected_cache_dir)
         mock_login.assert_called_once()
@@ -35,13 +35,13 @@ class TestLoginCommand:
 class TestConvertCommand:
     @patch("cli.convert_model")
     def test_calls_convert_model_with_config(self, mock_convert, cfg):
-        # Given
+        # Given — a mocked convert_model function and the default model configuration
         m = cfg.model
 
-        # When
+        # When — the "convert" CLI command is invoked
         result = runner.invoke(app, ["convert"])
 
-        # Then
+        # Then — convert_model is called with all model config values (name, path, quantize, dtype, q_bits)
         assert result.exit_code == 0
         mock_convert.assert_called_once_with(
             model_name=m.model_name,
@@ -69,7 +69,7 @@ class TestTrainCommand:
         mock_train,
         cfg,
     ):
-        # Given
+        # Given — all pipeline steps (convert, load, adapter setup, LoRA, data, train) are mocked with realistic return values
         mock_model = MagicMock()
         mock_tokenizer = MagicMock()
         mock_load_model.return_value = (mock_model, mock_tokenizer)
@@ -88,10 +88,10 @@ class TestTrainCommand:
             "grad_checkpoint": cfg.training.grad_checkpoint,
         }
 
-        # When
+        # When — the "train" CLI command is invoked, triggering the full training pipeline
         result = runner.invoke(app, ["train"])
 
-        # Then
+        # Then — the command exits successfully and each pipeline step is called with the correct config values
         assert result.exit_code == 0
 
         mock_convert.assert_called_once_with(
@@ -133,15 +133,15 @@ class TestTrainCommand:
 class TestFuseCommand:
     @patch("cli.fuse_model")
     def test_calls_fuse_model_with_config(self, mock_fuse, cfg):
-        # Given
+        # Given — a mocked fuse_model function and config paths for model, adapter, and output
         expected_model_path = cfg.model.mlx_path
         expected_adapter_path = cfg.lora.adapter_path
         expected_save_path = cfg.fuse.fuse_path
 
-        # When
+        # When — the "fuse" CLI command is invoked
         result = runner.invoke(app, ["fuse"])
 
-        # Then
+        # Then — fuse_model is called with the MLX model path, adapter path, and fuse output path from config
         assert result.exit_code == 0
         mock_fuse.assert_called_once_with(
             model_path=expected_model_path,
@@ -153,14 +153,14 @@ class TestFuseCommand:
 class TestUploadCommand:
     @patch("cli.upload_model")
     def test_calls_upload_model_with_config(self, mock_upload, cfg):
-        # Given
+        # Given — a mocked upload_model function and the expected folder path and repo ID from config
         expected_folder_path = cfg.fuse.fuse_path
         expected_repo_id = cfg.upload.repo_id
 
-        # When
+        # When — the "upload" CLI command is invoked
         result = runner.invoke(app, ["upload"])
 
-        # Then
+        # Then — upload_model is called with the fused model folder and the target HuggingFace repo ID
         assert result.exit_code == 0
         mock_upload.assert_called_once_with(
             folder_path=expected_folder_path,
@@ -175,16 +175,16 @@ class TestTestCommand:
     def test_loads_fused_model_and_runs_inference(
         self, mock_load, mock_inference, mock_echo, cfg
     ):
-        # Given
+        # Given — mocked load_model returning a fake model/tokenizer pair, and run_inference returning canned text
         mock_model = MagicMock()
         mock_tokenizer = MagicMock()
         mock_load.return_value = (mock_model, mock_tokenizer)
         mock_inference.return_value = "Generated response"
 
-        # When
+        # When — the "test" CLI command is invoked to run inference on the fused model
         result = runner.invoke(app, ["test"])
 
-        # Then
+        # Then — the fused model is loaded from config path and inference runs with the default "Hello, world!" prompt
         assert result.exit_code == 0
         mock_load.assert_called_once_with(cfg.fuse.fuse_path)
         mock_inference.assert_called_once_with(
@@ -194,14 +194,14 @@ class TestTestCommand:
     @patch("cli.run_inference")
     @patch("cli.load_model")
     def test_echoes_inference_response(self, mock_load, mock_inference):
-        # Given
+        # Given — mocked model loading and inference returning "Test output"
         mock_load.return_value = (MagicMock(), MagicMock())
         mock_inference.return_value = "Test output"
 
-        # When
+        # When — the "test" CLI command is invoked
         result = runner.invoke(app, ["test"])
 
-        # Then
+        # Then — the inference response text appears in the CLI output
         assert result.exit_code == 0
         assert "Test output" in result.output
 
@@ -210,17 +210,17 @@ class TestInferenceCommand:
     @patch("cli.run_inference")
     @patch("cli.load_model")
     def test_loads_base_model_and_runs_inference(self, mock_load, mock_inference, cfg):
-        # Given
+        # Given — mocked model loading and inference, with a user-provided prompt
         mock_model = MagicMock()
         mock_tokenizer = MagicMock()
         mock_load.return_value = (mock_model, mock_tokenizer)
         mock_inference.return_value = "Base model response"
         prompt = "Explain gravity"
 
-        # When
+        # When — the "inference" CLI command is invoked with the prompt argument
         result = runner.invoke(app, ["inference", prompt])
 
-        # Then
+        # Then — the base model (not fused) is loaded from mlx_path and inference runs with the given prompt
         assert result.exit_code == 0
         mock_load.assert_called_once_with(cfg.model.mlx_path)
         mock_inference.assert_called_once_with(mock_model, mock_tokenizer, prompt)
@@ -228,13 +228,13 @@ class TestInferenceCommand:
     @patch("cli.run_inference")
     @patch("cli.load_model")
     def test_echoes_inference_response(self, mock_load, mock_inference):
-        # Given
+        # Given — mocked model loading and inference returning "Base output"
         mock_load.return_value = (MagicMock(), MagicMock())
         mock_inference.return_value = "Base output"
 
-        # When
+        # When — the "inference" CLI command is invoked with a simple prompt
         result = runner.invoke(app, ["inference", "Hello"])
 
-        # Then
+        # Then — the inference response text appears in the CLI output
         assert result.exit_code == 0
         assert "Base output" in result.output
