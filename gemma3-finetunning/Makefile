@@ -1,4 +1,4 @@
-.PHONY: setup login convert train fuse upload test test-unit all clean
+.PHONY: setup login convert train fuse upload test test-unit inference all clean
 
 setup:
 	uv sync
@@ -20,6 +20,9 @@ upload:
 
 test:
 	uv run python cli.py test
+
+inference:
+	uv run python cli.py inference $(PROMPT)
 
 test-unit:
 	uv run pytest tests/ -v
