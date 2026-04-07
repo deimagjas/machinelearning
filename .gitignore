@@ -8,9 +8,8 @@ new_gemma3/
 .DS_Store
 __pycache__/
 gemma3-mlx
-gemma3-finetunning/gemma3-mlx/*
-gemma3-finetunning/gemma3f-mlx/*
-gemma3-finetunning/adaptersf_gemma3/*
-gemma3-finetunning/new_functiongemma3/*
+gemma3-finetunning/*-mlx/
+gemma3-finetunning/adapters-*/
+gemma3-finetunning/*-new/
 gemma3-finetunning/.old/
 .agent/
