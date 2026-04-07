@@ -9,6 +9,7 @@ from config import (
     PipelineConfig,
     TrainingConfig,
     UploadConfig,
+    _short_name,
 )
 
 
@@ -31,7 +32,7 @@ class TestModelConfigDefaults:
 
     def test_mlx_path(self):
         cfg = ModelConfig()
-        assert cfg.mlx_path == "./gemma3f-mlx"
+        assert cfg.mlx_path == "./functiongemma-270m-it-mlx"
 
 
 class TestLoraConfigDefaults:
@@ -41,7 +42,7 @@ class TestLoraConfigDefaults:
         assert cfg.rank == 4
         assert cfg.scale == 20.0
         assert cfg.dropout == 0.0
-        assert cfg.adapter_path == "adaptersf_gemma3"
+        assert cfg.adapter_path == ""
 
 
 class TestTrainingConfigDefaults:
@@ -67,13 +68,13 @@ class TestDataConfigDefaults:
 class TestFuseConfigDefaults:
     def test_defaults(self):
         cfg = FuseConfig()
-        assert cfg.fuse_path == "./new_functiongemma3"
+        assert cfg.fuse_path == ""
 
 
 class TestUploadConfigDefaults:
     def test_defaults(self):
         cfg = UploadConfig()
-        assert cfg.repo_id == "deimagjas/functiongemma-3-270m-it-sft"
+        assert cfg.repo_id == ""
 
 
 class TestEnvVarOverrides:
@@ -162,8 +163,8 @@ class TestPipelineConfig:
         assert cfg.lora.rank == 4
         assert cfg.training.iters == 200
         assert cfg.data.hf_dataset_path == "google/mobile-actions"
-        assert cfg.fuse.fuse_path == "./new_functiongemma3"
-        assert cfg.upload.repo_id == "deimagjas/functiongemma-3-270m-it-sft"
+        assert cfg.fuse.fuse_path == "./functiongemma-270m-it-new"
+        assert cfg.upload.repo_id == "deimagjas/functiongemma-270m-it-mlx"
 
     def test_sub_config_override(self):
         cfg = PipelineConfig(
@@ -172,3 +173,75 @@ class TestPipelineConfig:
         )
         assert cfg.model.model_name == "custom/model"
         assert cfg.training.iters == 500
+
+
+class TestShortName:
+    def test_with_org_prefix(self):
+        assert _short_name("google/functiongemma-270m-it") == "functiongemma-270m-it"
+
+    def test_without_org_prefix(self):
+        assert _short_name("functiongemma-270m-it") == "functiongemma-270m-it"
+
+    def test_multiple_slashes(self):
+        assert _short_name("a/b/c") == "c"
+
+
+class TestDerivedDefaultPaths:
+    """Default paths are derived from the default model_name."""
+
+    def test_model_mlx_path(self):
+        cfg = PipelineConfig()
+        assert cfg.model.mlx_path == "./functiongemma-270m-it-mlx"
+
+    def test_lora_adapter_path(self):
+        cfg = PipelineConfig()
+        assert cfg.lora.adapter_path == "adapters-functiongemma-270m-it"
+
+    def test_fuse_path(self):
+        cfg = PipelineConfig()
+        assert cfg.fuse.fuse_path == "./functiongemma-270m-it-new"
+
+    def test_upload_repo_id(self):
+        cfg = PipelineConfig()
+        assert cfg.upload.repo_id == "deimagjas/functiongemma-270m-it-mlx"
+
+
+class TestCustomModelDerivedPaths:
+    """Paths derived from a custom model_name."""
+
+    def test_derived_paths(self):
+        cfg = PipelineConfig(model=ModelConfig(model_name="org/my-model"))
+        assert cfg.model.mlx_path == "./my-model-mlx"
+        assert cfg.lora.adapter_path == "adapters-my-model"
+        assert cfg.fuse.fuse_path == "./my-model-new"
+        assert cfg.upload.repo_id == "deimagjas/my-model-mlx"
+
+
+class TestExplicitOverridesNotOverwritten:
+    """Explicit values must not be overwritten by the validator."""
+
+    def test_explicit_mlx_path(self):
+        cfg = PipelineConfig(model=ModelConfig(mlx_path="/custom/mlx"))
+        assert cfg.model.mlx_path == "/custom/mlx"
+
+    def test_explicit_adapter_path(self):
+        cfg = PipelineConfig(lora=LoraConfig(adapter_path="my-adapters"))
+        assert cfg.lora.adapter_path == "my-adapters"
+
+    def test_explicit_fuse_path(self):
+        cfg = PipelineConfig(fuse=FuseConfig(fuse_path="/custom/fuse"))
+        assert cfg.fuse.fuse_path == "/custom/fuse"
+
+    def test_explicit_repo_id(self):
+        cfg = PipelineConfig(upload=UploadConfig(repo_id="user/repo"))
+        assert cfg.upload.repo_id == "user/repo"
+
+    def test_env_override_mlx_path(self, monkeypatch):
+        monkeypatch.setenv("MODEL_MLX_PATH", "/env/mlx")
+        cfg = PipelineConfig(model=ModelConfig())
+        assert cfg.model.mlx_path == "/env/mlx"
+
+    def test_env_override_adapter_path(self, monkeypatch):
+        monkeypatch.setenv("LORA_ADAPTER_PATH", "env-adapters")
+        cfg = PipelineConfig(lora=LoraConfig())
+        assert cfg.lora.adapter_path == "env-adapters"

@@ -1,5 +1,9 @@
-from pydantic import Field, PositiveInt
+from pydantic import Field, PositiveInt, model_validator
 from pydantic_settings import BaseSettings
+
+
+def _short_name(model_name: str) -> str:
+    return model_name.split("/")[-1]
 
 
 class ModelConfig(BaseSettings):
@@ -9,8 +13,15 @@ class ModelConfig(BaseSettings):
     quantize: bool = True
     dtype: str = "float16"
     q_bits: PositiveInt = 4
-    mlx_path: str = "./gemma3f-mlx"
+    mlx_path: str = ""
     cache_dir: str = "./models_cache"
+
+    @model_validator(mode="after")
+    def set_derived_defaults(self):
+        short = _short_name(self.model_name)
+        if not self.mlx_path:
+            self.mlx_path = f"./{short}-mlx"
+        return self
 
 
 class LoraConfig(BaseSettings):
@@ -20,7 +31,7 @@ class LoraConfig(BaseSettings):
     rank: PositiveInt = 4
     scale: float = 20.0
     dropout: float = Field(default=0.0, ge=0.0, le=1.0)
-    adapter_path: str = "adaptersf_gemma3"
+    adapter_path: str = ""
 
 
 class TrainingConfig(BaseSettings):
@@ -46,13 +57,13 @@ class DataConfig(BaseSettings):
 class FuseConfig(BaseSettings):
     model_config = {"env_prefix": "FUSE_"}
 
-    fuse_path: str = "./new_functiongemma3"
+    fuse_path: str = ""
 
 
 class UploadConfig(BaseSettings):
     model_config = {"env_prefix": "UPLOAD_"}
 
-    repo_id: str = "deimagjas/functiongemma-3-270m-it-sft"
+    repo_id: str = ""
 
 
 class PipelineConfig(BaseSettings):
@@ -64,3 +75,14 @@ class PipelineConfig(BaseSettings):
     data: DataConfig = DataConfig()
     fuse: FuseConfig = FuseConfig()
     upload: UploadConfig = UploadConfig()
+
+    @model_validator(mode="after")
+    def set_derived_paths(self):
+        short = _short_name(self.model.model_name)
+        if not self.lora.adapter_path:
+            self.lora.adapter_path = f"adapters-{short}"
+        if not self.fuse.fuse_path:
+            self.fuse.fuse_path = f"./{short}-new"
+        if not self.upload.repo_id:
+            self.upload.repo_id = f"deimagjas/{short}-mlx"
+        return self
